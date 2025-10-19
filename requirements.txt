@@ -1,0 +1,15 @@
+# requirements.txt
+# Core dependencies
+flask>=2.3.0
+textual>=0.45.0
+ollama>=0.3.0
+
+# Flask dependencies (usually installed automatically with Flask)
+werkzeug>=2.3.0
+jinja2>=3.1.0
+markupsafe>=2.1.0
+itsdangerous>=2.1.0
+click>=8.1.0
+
+# Additional useful dependencies for development
+python-dotenv>=1.0.0

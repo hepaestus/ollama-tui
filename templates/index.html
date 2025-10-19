@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ollama Chat Interface</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #444;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #2d2d2d;
+            border-radius: 5px;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #3a3a3a;
+            border-left: 4px solid #4CAF50;
+        }
+        .assistant-message {
+            background-color: #333;
+            border-left: 4px solid #2196F3;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        #prompt {
+            flex: 1;
+            padding: 10px;
+            background-color: #333;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            border-radius: 5px;
+        }
+        #model-select {
+            padding: 10px;
+            background-color: #333;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .timestamp {
+            font-size: 0.8em;
+            color: #888;
+        }
+        .model-info {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Ollama Chat Interface</h1>
+            <div class="model-info">Connected to Ollama backend</div>
+        </div>
+        
+        <div class="chat-container" id="chat-container">
+            <div class="message assistant-message">
+                <strong>Assistant:</strong> Hello! I'm ready to chat. Select a model and start a conversation.
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <select id="model-select">
+                <!-- Models will be populated by JavaScript -->
+            </select>
+            <input type="text" id="prompt" placeholder="Type your message here...">
+            <button onclick="sendMessage()">Send</button>
+            <button onclick="newConversation()">New Chat</button>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const promptInput = document.getElementById('prompt');
+        const modelSelect = document.getElementById('model-select');
+        let currentConversationId = null;
+        let currentModel = 'llama3';
+
+        // Load available models
+        fetch('/').then(response => response.text()).then(html => {
+            // This is a simplified approach - in a real app, you'd fetch models separately
+            const models = ['llama3', 'mistral', 'phi3', 'gemma'];
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                modelSelect.appendChild(option);
+            });
+        });
+
+        // Handle sending messages
+        function sendMessage() {
+            const prompt = promptInput.value.trim();
+            if (!prompt) return;
+
+            const message = {
+                role: 'user',
+                content: prompt
+            };
+
+            // Add user message to UI
+            addMessageToUI(message, 'user');
+
+            // Clear input
+            promptInput.value = '';
+
+            // Send to backend
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    model: currentModel,
+                    conversation_id: currentConversationId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const assistantMessage = {
+                    role: 'assistant',
+                    content: data.response
+                };
+                addMessageToUI(assistantMessage, 'assistant');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addMessageToUI({
+                    role: 'assistant',
+                    content: 'Error occurred while processing your request.'
+                }, 'assistant');
+            });
+        }
+
+        // Add message to UI
+        function addMessageToUI(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            messageDiv.innerHTML = `
+                <strong>${type.charAt(0).toUpperCase() + type.slice(1)}:</strong> 
+                ${message.content}
+                <div class="timestamp">${timestamp}</div>
+            `;
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Start new conversation
+        function newConversation() {
+            fetch('/new_conversation', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                currentConversationId = data.conversation_id;
+                chatContainer.innerHTML = '<div class="message assistant-message"><strong>Assistant:</strong> New conversation started!</div>';
+            });
+        }
+
+        // Event listeners
+        promptInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        modelSelect.addEventListener('change', function() {
+            currentModel = this.value;
+        });
+
+        // Initialize
+        newConversation();
+    </script>
+</body>
+</html>

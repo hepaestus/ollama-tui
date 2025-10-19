@@ -1,0 +1,51 @@
+#main-container {
+    layout: vertical;
+    height: 100%;
+    width: 100%;
+}
+
+#left-panel {
+    width: 25%;
+    height: 100%;
+    padding: 1;
+    border: solid blue;
+    background: $background;
+}
+
+#right-panel {
+    width: 75%;
+    height: 100%;
+    padding: 1;
+    border: solid green;
+    background: $background;
+}
+
+#title {
+    text-align: center;
+    margin-bottom: 1;
+    color: $primary;
+    text-style: bold;
+}
+
+#chat-display {
+    height: 80%;
+    margin-bottom: 1;
+    border: solid $secondary;
+    background: $surface;
+}
+
+#message-input {
+    width: 80%;
+}
+
+#send-button {
+    width: 20%;
+}
+
+#model-select {
+    margin-bottom: 1;
+}
+
+#new-chat, #clear-history, #show-history {
+    margin-bottom: 1;
+}
