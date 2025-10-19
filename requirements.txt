@@ -1,7 +1,8 @@
 # requirements.txt
 # Core dependencies
 flask>=2.3.0
-textual>=0.45.0
+textual>=6.3.0
+textual-serve>=1.0.3
 ollama>=0.3.0
 
 # Flask dependencies (usually installed automatically with Flask)

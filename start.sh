@@ -194,6 +194,17 @@ run_tui() {
     python3 tui.py
 }
 
+# Function to run TUI with HTTP interface
+run_tui_web() {
+    print_header "Starting Ollama TUI Web Interface"
+    print_status "Launching TUI with HTTP interface..."
+    print_status "Access the TUI in your browser at:"
+    print_status "  Local:   http://localhost:8812"
+    print_status "  Network: http://$(hostname -I | awk '{print $1}'):8812"
+    print_status "Use Ctrl+C to quit"
+    textual serve -c "python3 tui.py" --port 8812
+}
+
 # Function to run Flask web app
 run_web() {
     print_header "Starting Ollama Web Interface"
@@ -240,12 +251,13 @@ show_menu() {
     echo ""
     echo "1) Setup environment only"
     echo "2) Run Terminal UI (TUI)"
-    echo "3) Run Web Interface"
-    echo "4) Run Both Interfaces"
-    echo "5) Run diagnostic tests"
-    echo "6) Exit"
+    echo "3) Run TUI Web Interface (browser-based TUI)"
+    echo "4) Run Web Interface (Flask)"
+    echo "5) Run Both Terminal & Web Interfaces"
+    echo "6) Run diagnostic tests"
+    echo "7) Exit"
     echo ""
-    read -p "Enter your choice (1-6): " choice
+    read -p "Enter your choice (1-7): " choice
 }
 
 # Main setup function
@@ -278,6 +290,11 @@ case "${1:-}" in
         run_tui
         exit 0
         ;;
+    --tui-web)
+        setup_environment
+        run_tui_web
+        exit 0
+        ;;
     --web)
         setup_environment
         run_web
@@ -298,12 +315,13 @@ case "${1:-}" in
         echo "Usage: $0 [OPTION]"
         echo ""
         echo "Options:"
-        echo "  --setup    Setup environment only"
-        echo "  --tui      Setup and run Terminal UI"
-        echo "  --web      Setup and run Web Interface"
-        echo "  --both     Setup and run both interfaces"
-        echo "  --test     Setup environment and run tests"
-        echo "  --help     Show this help message"
+        echo "  --setup      Setup environment only"
+        echo "  --tui        Setup and run Terminal UI"
+        echo "  --tui-web    Setup and run TUI Web Interface (browser-based TUI)"
+        echo "  --web        Setup and run Web Interface (Flask)"
+        echo "  --both       Setup and run both terminal and Flask interfaces"
+        echo "  --test       Setup environment and run tests"
+        echo "  --help       Show this help message"
         echo ""
         echo "If no option is provided, an interactive menu will be shown."
         exit 0
@@ -325,24 +343,29 @@ while true; do
             ;;
         3)
             setup_environment
-            run_web
+            run_tui_web
             break
             ;;
         4)
             setup_environment
-            run_both
+            run_web
             break
             ;;
         5)
             setup_environment
+            run_both
             break
             ;;
         6)
+            setup_environment
+            break
+            ;;
+        7)
             print_status "Goodbye!"
             exit 0
             ;;
         *)
-            print_error "Invalid option. Please choose 1-6."
+            print_error "Invalid option. Please choose 1-7."
             ;;
     esac
 done
